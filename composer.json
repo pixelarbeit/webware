@@ -3,8 +3,8 @@
     "type": "library",
     "description": "Büroware WebWARE API",
     "keywords": ["bueroware", "büroware", "webware", "webservices", "erp"],
-    "homepage": "https://github.com/Seldaek/monolog",
-    "license": "MIT",
+    "homepage": "https://github.com/pixelarbeit/webware",
+    "license": "GNU GPLv3",
     "authors": [
         {
             "name": "Dennis Koch",
