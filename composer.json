@@ -1,0 +1,23 @@
+{
+    "name": "pixelarbeit/webware",
+    "type": "library",
+    "description": "Büroware WebWARE API",
+    "keywords": ["bueroware", "büroware", "webware", "webservices", "erp"],
+    "homepage": "https://github.com/Seldaek/monolog",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dennis Koch",
+            "email": "info@pixelarbeit.de",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Webware\\": "src/Webware"
+        }
+    }
+}
