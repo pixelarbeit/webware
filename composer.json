@@ -5,6 +5,7 @@
     "keywords": ["bueroware", "büroware", "webware", "webservices", "erp"],
     "homepage": "https://github.com/pixelarbeit/webware",
     "license": "GNU GPLv3",
+    "version": "1.0",
     "authors": [
         {
             "name": "Dennis Koch",
