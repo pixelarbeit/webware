@@ -1,11 +1,11 @@
 <?php
 
-namespace Webware;
+namespace Pixelarbeit\Webware;
 
 use Exception;
-use Webware\Classes\ServicePass;
-use Webware\Exceptions\InvalidResponseException;
-use Webware\Exceptions\ConnectionException;
+use Pixelarbeit\Webware\Classes\ServicePass;
+use Pixelarbeit\Webware\Exceptions\InvalidResponseException;
+use Pixelarbeit\Webware\Exceptions\ConnectionException;
 
 
 
