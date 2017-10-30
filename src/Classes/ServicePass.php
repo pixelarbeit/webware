@@ -7,15 +7,13 @@ class ServicePass
 
     public function __construct($id, $secret) {
         $this->id = $id;
-        $this->appSecret = $secret;        
+        $this->appSecret = $secret;
     }
 
     public static function createFromObject($obj)
     {
-        $pass = new self();
+        $pass = new self($obj->PASSID, $obj->APPID);
 
-        $pass->id = $obj->PASSID;
-        $pass->appSecret = $obj->APPID;
         $pass->creationDate = $obj->PDATE;
         $pass->creationTime = $obj->PTIME;
 
