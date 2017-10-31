@@ -187,9 +187,10 @@ class Api
     {
         $url = $this->host . '/WWSVC/EXECJSON';
         $data = $this->createAuthArray();
+        $params = $this->createParamsArray($params);
 
         $data['WWSVC_FUNCTION'] = [
-            'FUNCTIONNAME' => $name,
+            'FUNCTIONNAME' => strtoupper($name),
             'PARAMETER' => $params
         ];
 
@@ -244,6 +245,28 @@ class Api
                 'GET_RESULT_MAX_LINES' => 10000
             ]
         ];
+    }
+
+
+
+    /**
+     * Maps key-value params to webware param arrays
+     * @return array Headers
+     */
+    private function createParamsArray($params)
+    {
+        $result = [];
+        $i = 1;
+
+        foreach ($params as $key => $value) {
+            $result[] = [
+                'PNAME' => strtoupper($key),
+                'PCONTENT' => $value,
+                'POSITION' => $i++
+            ];
+        }
+
+        return $result;
     }
 
 
