@@ -1,6 +1,6 @@
 <?php
 
-namespace Pixelarbeit\Webware\Classes;
+namespace Pixelarbeit\Webware\Utils;
 
 class ServicePass
 {

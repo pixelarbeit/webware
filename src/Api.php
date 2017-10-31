@@ -3,7 +3,8 @@
 namespace Pixelarbeit\Webware;
 
 use Exception;
-use Pixelarbeit\Webware\Classes\ServicePass;
+use Pixelarbeit\Webware\Utils\ServicePass;
+use Pixelarbeit\Webware\Utils\HttpJsonClient;
 use Pixelarbeit\Webware\Exceptions\InvalidResponseException;
 use Pixelarbeit\Webware\Exceptions\ConnectionException;
 
@@ -24,6 +25,7 @@ class Api
     public function __construct($host)
     {
         $this->host = $host;
+        $this->httpClient = new HttpJsonClient();
     }
 
 
@@ -40,7 +42,7 @@ class Api
         $url = $this->host . '/WWSVC/WWSERVICE/REGISTER/'
                     . $makerId . '/' . $appId . '/' . $accessId;
 
-        $response = $this->sendRequest($url);
+        $response = $this->httpClient->get($url);
 
         if (in_array($response->COMRESULT->STATUS, [200, 202]) === false) {
             throw new Exception("Error registering service pass: " . $response->COMRESULT->INFO, 1);
@@ -62,7 +64,7 @@ class Api
         $url = $this->host . '/WWSVC/WWSERVICE/VALIDATE/' . $servicePass->id;
         $headers = $this->createAuthHeaders();
 
-        $response = $this->sendRequest($url, $headers);
+        $response = $this->httpClient->get($url, $headers);
 
         if ($response->COMRESULT->STATUS !== 200) {
             return false;
@@ -86,7 +88,7 @@ class Api
 
         $headers = $this->createAuthHeaders();
 
-        $response = $this->sendRequest($url, $headers);
+        $response = $this->httpClient->get($url, $headers);
 
         if ($response->COMRESULT->STATUS === 401) {
             throw new InvalidArgumentException("Invalid credentials" . $response->COMRESULT->INFO, 1);
@@ -114,7 +116,7 @@ class Api
         $url = $this->host . '/WWSVC/WWSERVICE/CLOSE/' . $this->servicePass->id;
         $headers = $this->createAuthHeaders();
 
-        $response = $this->sendRequest($url, $headers);
+        $response = $this->httpClient->get($url, $headers);
 
         if ($response->COMRESULT->STATUS === 406) {
             throw new Exception("Invalid SessionPass: " . $response->COMRESULT->INFO, 1);
@@ -135,7 +137,7 @@ class Api
      */
     public function get($name, $params = [])
     {
-        return $this->getResults($name . '.GET', $params);
+        return $this->execJson($name . '.GET', $params);
     }
 
 
@@ -148,7 +150,7 @@ class Api
      */
     public function put($name, $params = [])
     {
-        return $this->getResults($name . '.PUT', $params);
+        return $this->execJson($name . '.PUT', $params);
     }
 
 
@@ -161,7 +163,7 @@ class Api
      */
     public function insert($name, $params = [])
     {
-        return $this->getResults($name . '.INSERT', $params);
+        return $this->execJson($name . '.INSERT', $params);
     }
 
 
@@ -173,7 +175,7 @@ class Api
      */
     public function delete($name, $params = [])
     {
-        return $this->getResults($name . '.DELETE', $params);
+        return $this->execJson($name . '.DELETE', $params);
     }
 
 
@@ -183,25 +185,98 @@ class Api
      * @param  string $nodeName Name of node/data table
      * @return array/object       List of entries
      */
-    public function getResults($name, $params = [])
+    public function execJson($name, $params = [])
     {
         $url = $this->host . '/WWSVC/EXECJSON';
-        $data = $this->createAuthArray();
         $params = $this->createParamsArray($params);
+
+        $data = $this->createAuthArray();
 
         $data['WWSVC_FUNCTION'] = [
             'FUNCTIONNAME' => strtoupper($name),
             'PARAMETER' => $params
         ];
 
-        $json = json_encode($data);
-        $headers = [
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen($json)
-        ];
+        return $this->httpClient->request('PUT', $url, $data);
+    }
 
 
-        return $this->sendRequest($url, $headers, $json, 'PUT');
+
+    /**
+     * Send a bulk get request
+     * @param  string $name   Resource/table name
+     * @param  array  $items  Items
+     * @return array          Result
+     */
+    public function bulkGet($name, $items = [])
+    {
+        return $this->bulkExecJson($name . '.GET', $items);
+    }
+
+
+
+    /**
+     * Send a bulk update/put request
+     * @param  string $name   Resource/table name
+     * @param  array  $items  Items
+     * @return array          Result
+     */
+    public function bulkPut($name, $items = [])
+    {
+        return $this->bulkExecJson($name . '.PUT', $items);
+    }
+
+
+
+    /**
+     * Send a bulk insert request
+     * @param  string $name   Resource/table name
+     * @param  array  $items  Items
+     * @return array          Result
+     */
+    public function bulkInsert($name, $items = [])
+    {
+        return $this->bulkExecJson($name . '.INSERT', $items);
+    }
+
+
+
+    /**
+     * Send a bulk delete request
+     * @param  string $name   Resource/table name
+     * @param  array  $items  Items
+     * @return array          Result
+     */
+    public function bulkDelete($name, $items = [])
+    {
+        return $this->bulkExecJson($name . '.DELETE', $items);
+    }
+
+
+
+    /**
+     * Send multiple request in parallel to handle bulk action.
+     * @param  String $name  Endpoint
+     * @param  array  $items Items to send
+     * @return array        Array with responses for each request
+     */
+    public function bulkExecJson($name, $items = [])
+    {
+        $url = $this->host . '/WWSVC/EXECJSON';
+
+        $data = $this->createAuthArray();
+        $data['WWSVC_FUNCTION']['FUNCTIONNAME'] = strtoupper($name);
+
+        $this->httpClient->initBulkRequest();
+
+        foreach ($items as $item) {
+            $params = $this->createParamsArray($item);
+            $data['WWSVC_FUNCTION']['PARAMETER'] = $params;
+
+            $this->httpClient->addBulkRequest('PUT', $url, $data);
+        }
+
+        return $this->httpClient->executeBulkRequest();
     }
 
 
@@ -302,54 +377,6 @@ class Api
     private function currentRequestId()
     {
         return $this->requestId++;
-    }
-
-
-
-    /**
-     * Sending request to given url and parsing JSON response.
-     * Throwing exception on unvalid response
-     * @param  string $url Webservice request url
-     * @return object      response as JSON object
-     */
-    private function sendRequest($url, $headers = [], $data = null, $method = 'GET')
-    {
-        $ch = curl_init();
-
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLINFO_HEADER_OUT , $this->debug);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        //
-
-        $response = curl_exec($ch);
-
-        if ($this->debug == true) {
-            echo '<pre>';
-            echo "<strong>SENT HEADERS:</strong><br>";
-            print(curl_getinfo($ch)['request_header']) . '<br>';
-            echo "<strong>SENT PAYLOAD:</strong><br>";
-            print($data) . '<br><br>';
-            echo "<strong>RESPONSE:</strong><br>";
-            print($response) . '<br><br>';
-            echo '</pre>';
-        }
-
-        if (curl_errno($ch)) {
-            throw new ConnectionException(curl_error($ch), curl_errno($ch));
-        }
-
-        $json = json_decode($response);
-        if ($json === null) {
-            throw new InvalidResponseException("No valid JSON", 1);
-        }
-
-        return $json;
     }
 
 
