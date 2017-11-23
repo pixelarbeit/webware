@@ -1,5 +1,5 @@
 <?php
 
-namespace Webware\Exceptions;
+namespace Pixelarbeit\Webware\Exceptions;
 
 class InvalidResponseException extends \Exception {}
