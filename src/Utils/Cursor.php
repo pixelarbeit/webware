@@ -59,6 +59,12 @@ class Cursor
             $this->token = $headers['WWSVC-CURSOR'];
         }
 
+        // Handles buggy behaviour if first request is under limit.
+        // No CLOSED statement is returned.
+        if ($json->COMRESULT->STATUS == 501 && $json->COMRESULT->INFO3 == 'CLOSED') {
+            return false;
+        }
+
         return $json;
     }
 }
