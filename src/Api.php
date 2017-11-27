@@ -3,6 +3,7 @@
 namespace Pixelarbeit\Webware;
 
 use Exception;
+use Pixelarbeit\Webware\Utils\Cursor;
 use Pixelarbeit\Webware\Utils\ServicePass;
 use Pixelarbeit\Webware\Utils\HttpJsonClient;
 use Pixelarbeit\Webware\Exceptions\InvalidResponseException;
@@ -19,6 +20,7 @@ class Api
     private $sessionToken = null;
 
     public $debug = false;
+    public $limit = 500;
 
 
 
@@ -197,7 +199,21 @@ class Api
             'PARAMETER' => $params
         ];
 
-        return $this->httpClient->request('PUT', $url, $data);
+        list($headers, $json) = $this->httpClient->request('PUT', $url, $data);
+        return $json;
+    }
+
+
+
+    /**
+     * Creates and returns a cursor.
+     * @param  string $name   name of endpoint
+     * @param  array  $params params for request
+     * @return Cursor         cursor
+     */
+    public function createCursor($name, $params = [])
+    {
+        return new Cursor($this, $name, $params);
     }
 
 
@@ -285,7 +301,7 @@ class Api
      * Creates WWSVC headers for service authentication
      * @return array Headers
      */
-    private function createAuthHeaders()
+    public function createAuthHeaders()
     {
         $this->requireServicePass();
 
@@ -305,7 +321,7 @@ class Api
      * Creates WWSVC headers for service authentication
      * @return array Headers
      */
-    private function createAuthArray()
+    public function createAuthArray()
     {
         $this->requireServicePass();
 
@@ -317,7 +333,7 @@ class Api
                 'APPHASH' => $this->createRequestHash($time),
                 'TIMESTAMP' => strval($time),
                 'REQUESTID' => strval($this->currentRequestId()),
-                'GET_RESULT_MAX_LINES' => 10000
+                'GET_RESULT_MAX_LINES' => $this->limit
             ]
         ];
     }
@@ -328,7 +344,7 @@ class Api
      * Maps key-value params to webware param arrays
      * @return array Headers
      */
-    private function createParamsArray($params)
+    public function createParamsArray($params)
     {
         $result = [];
         $i = 1;
@@ -384,5 +400,10 @@ class Api
     /*    SETTERS & GETTERS */
     public function setServicePass($servicePass) {
         $this->servicePass = $servicePass;
+    }
+
+    public function getHost()
+    {
+        return $this->host;
     }
 }

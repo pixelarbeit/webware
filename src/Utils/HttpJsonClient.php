@@ -42,10 +42,19 @@ class HttpJsonClient
             throw new ConnectionException(curl_error($ch), curl_errno($ch));
         }
 
-        $json = json_decode($response);
+        list($header, $body) = explode("\r\n\r\n", $response, 2);
+        $json = json_decode($body);
 
         if ($json === null) {
+            var_dump($response);
             throw new InvalidResponseException("No valid JSON", 1);
+        }
+
+        $headers = [];
+        $header = explode("\n", $header);
+        for ($i = 1; $i < count($header); $i++) {
+            list($key, $item) = explode(': ', $header[$i]);
+            $headers[$key] = $item;
         }
 
         if ($this->debug == true) {
@@ -62,7 +71,7 @@ class HttpJsonClient
         }
 
 
-        return $json;
+        return [$headers, $json];
     }
 
 
@@ -114,6 +123,10 @@ class HttpJsonClient
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+
+        curl_setopt($ch, CURLOPT_HEADER, 1);
+
+        curl_setopt($ch, CURLOPT_VERBOSE, true);
     }
 
 
