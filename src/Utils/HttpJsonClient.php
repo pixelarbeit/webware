@@ -32,7 +32,7 @@ class HttpJsonClient
     public function request($method, $url, $data = '', $headers = [])
     {
         $ch = curl_init();
-        $data = json_encode($data);
+        $data = json_encode($data, JSON_UNESCAPED_UNICODE);
         $this->addJsonHeaders($headers, $data);
         $this->setOptions($ch, $method, $url, $data, $headers);
 
@@ -106,7 +106,7 @@ class HttpJsonClient
 
     private function addJsonHeaders(&$headers, $json)
     {
-        $headers[] = 'Content-Type: application/json';
+        $headers[] = 'Content-Type: application/json; charset=utf-8';
         $headers[] = 'Content-Length: ' . strlen($json);
     }
 

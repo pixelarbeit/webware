@@ -19,7 +19,6 @@ class Api
     private $servicePass = null;
     private $sessionToken = null;
 
-    public $debug = false;
     public $limit = 500;
 
 
@@ -402,8 +401,14 @@ class Api
         $this->servicePass = $servicePass;
     }
 
+    public function setDebug($debug)
+    {
+        $this->httpClient->debug = $debug;
+    }
+
     public function getHost()
     {
         return $this->host;
     }
+
 }
