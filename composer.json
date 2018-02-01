@@ -4,7 +4,7 @@
     "description": "Büroware WebWARE API",
     "keywords": ["bueroware", "büroware", "webware", "webservices", "erp"],
     "homepage": "https://github.com/pixelarbeit/webware",
-    "license": "GNU GPLv3",
+    "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "Dennis Koch",
