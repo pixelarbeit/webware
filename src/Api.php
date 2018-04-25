@@ -43,7 +43,7 @@ class Api
         $url = $this->host . '/WWSVC/WWSERVICE/REGISTER/'
                     . $makerId . '/' . $appId . '/' . $accessId;
 
-        $response = $this->httpClient->get($url);
+        list($headers, $response) = $this->httpClient->get($url);
 
         if (in_array($response->COMRESULT->STATUS, [200, 202]) === false) {
             throw new Exception("Error registering service pass: " . $response->COMRESULT->INFO, 1);
@@ -65,7 +65,7 @@ class Api
         $url = $this->host . '/WWSVC/WWSERVICE/VALIDATE/' . $servicePass->id;
         $headers = $this->createAuthHeaders();
 
-        $response = $this->httpClient->get($url, $headers);
+        list($headers, $response) = $this->httpClient->get($url, $headers);
 
         if ($response->COMRESULT->STATUS !== 200) {
             return false;
@@ -89,7 +89,7 @@ class Api
 
         $headers = $this->createAuthHeaders();
 
-        $response = $this->httpClient->get($url, $headers);
+        list($headers, $response) = $this->httpClient->get($url, $headers);
 
         if ($response->COMRESULT->STATUS === 401) {
             throw new InvalidArgumentException("Invalid credentials" . $response->COMRESULT->INFO, 1);
@@ -117,7 +117,7 @@ class Api
         $url = $this->host . '/WWSVC/WWSERVICE/CLOSE/' . $this->servicePass->id;
         $headers = $this->createAuthHeaders();
 
-        $response = $this->httpClient->get($url, $headers);
+        list($headers, $response) = $this->httpClient->get($url, $headers);
 
         if ($response->COMRESULT->STATUS === 406) {
             throw new Exception("Invalid SessionPass: " . $response->COMRESULT->INFO, 1);
